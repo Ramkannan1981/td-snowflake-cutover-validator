@@ -88,6 +88,10 @@ A `SnowflakeAdapter` is not implemented in this repo.
 - `.env` is in `.gitignore`. `.env.example` holds empty placeholders only.
 - Reports (`reports/`) are git-ignored, because on real data they contain
   sample key values and column values from mismatched rows.
+- Columns listed in `pii_columns` are masked in every check detail, and so in
+  the gate reasons, logs and report: first character plus a short keyed hash
+  (`S***#a1b2`). Checks still compare the raw values, so differences are
+  still caught. Masking is done in one place, `src/masking.py`.
 
 ## Production shape (not built here)
 

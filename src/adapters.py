@@ -16,6 +16,8 @@ across schemas, since a real source and target are not in the same engine.
 
 from __future__ import annotations
 
+import csv
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -111,19 +113,57 @@ class DuckDBAdapter(DatabaseAdapter):
 
     def load_csv(self, schema: str, table: str, path: Path) -> None:
         # Every column is loaded as text, exactly as exported:
-        # - all_varchar: type inference would read amounts as DOUBLE and lose
-        #   exact decimal values; reconciliation casts numeric columns itself.
+        # - columns as VARCHAR: type inference would read amounts as DOUBLE and
+        #   lose exact decimal values; reconciliation casts numeric columns.
         # - allow_quoted_nulls=false: keeps "" (empty string) distinct from an
         #   unquoted empty field (NULL), a common Teradata vs Snowflake drift.
+        # - auto_detect off, dialect fixed, strict_mode: a malformed file fails
+        #   with a line number instead of being "sniffed" into one wide column.
+        columns = _read_header(path)
         try:
             self._con.execute(
                 f"CREATE OR REPLACE TABLE {schema}.{table} AS "
-                "SELECT * FROM read_csv(?, header = true, all_varchar = true, "
+                "SELECT * FROM read_csv(?, header = true, auto_detect = false, columns = ?, "
+                "delim = ',', quote = '\"', escape = '\"', strict_mode = true, "
                 "allow_quoted_nulls = false)",
-                [str(path)],
+                [str(path), {c: "VARCHAR" for c in columns}],
             )
         except duckdb.Error as e:
-            raise DataLoadError(f"Could not load {path} into {schema}.{table}: {e}") from e
+            # DuckDB's message quotes the offending row ("Original Line: ..."),
+            # which may hold PII. Keep only the line number and our own reason,
+            # and drop the original exception so it can't surface later.
+            raise DataLoadError(
+                f"Could not load {path} into {schema}.{table}: {_describe_csv_error(str(e))}"
+            ) from None
 
     def close(self) -> None:
         self._con.close()
+
+
+_CSV_ERROR_REASONS = [
+    ("Expected Number of Columns", "wrong number of columns"),
+    ("unterminated quote", "unterminated quote"),
+    ("Invalid unicode", "not valid UTF-8"),
+]
+
+
+def _describe_csv_error(message: str) -> str:
+    reason = next((r for phrase, r in _CSV_ERROR_REASONS if phrase in message), "malformed CSV")
+    line = re.search(r"CSV Error on Line: (\d+)", message)
+    return f"{reason} at line {line.group(1)}" if line else reason
+
+
+def _read_header(path: Path) -> list[str]:
+    # Decode only the first line: decoding more would blame a bad byte in a
+    # later row on the header. DuckDB reports those with their line number.
+    with path.open("rb") as f:
+        first_line = f.readline()
+    try:
+        header = next(csv.reader([first_line.decode("utf-8-sig")]), None)
+    except UnicodeDecodeError:
+        raise DataLoadError(f"Could not load {path}: header is not valid UTF-8") from None
+    if not header:
+        raise DataLoadError(f"Could not load {path}: file is empty or has no header")
+    if any(not c.strip() for c in header) or len(set(header)) != len(header):
+        raise DataLoadError(f"Could not load {path}: header has empty or repeated column names")
+    return header

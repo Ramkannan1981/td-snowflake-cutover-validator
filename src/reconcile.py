@@ -16,6 +16,7 @@ from decimal import Decimal, InvalidOperation
 from enum import Enum
 
 from .adapters import SOURCE_SCHEMA, TARGET_SCHEMA, DatabaseAdapter
+from .masking import mask_value
 from .table_config import ConfigError, TableConfig, ValidationConfig
 
 log = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ def reconcile_table(
     src_cols = adapter.columns(SOURCE_SCHEMA, table.load_name)
     tgt_cols = adapter.columns(TARGET_SCHEMA, table.load_name)
 
-    configured = table.key_columns + table.numeric_columns
+    configured = table.key_columns + table.numeric_columns + table.pii_columns
     missing = [c for c in configured if c not in src_cols]
     if missing:
         raise ConfigError(
@@ -199,7 +200,7 @@ def _check_row_diff(adapter, table, src, tgt, columns) -> CheckResult:
         if len(s[key]) == 1 and len(t[key]) == 1:
             ((s_norm, s_raw),), ((t_norm, t_raw),) = s[key].items(), t[key].items()
             cols = [
-                f"{c} {_fmt_val(a)} vs {_fmt_val(b)}"
+                f"{c} {_fmt_val(table, c, a)} vs {_fmt_val(table, c, b)}"
                 for c, a, b, sn, tn in zip(values, s_raw, t_raw, s_norm, t_norm) if sn != tn
             ]
             changed.append(f"{_fmt_key(table, key)}: {', '.join(cols)}")
@@ -242,11 +243,19 @@ def _q(identifier: str) -> str:
     return '"' + identifier.replace('"', '""') + '"'
 
 
+# Every row value in a check detail goes through _fmt_key or _fmt_val, so
+# PII columns are masked here and nowhere else.
+
 def _fmt_key(table: TableConfig, key) -> str:
-    return ", ".join(f"{c}={v}" for c, v in zip(table.key_columns, key))
+    return ", ".join(
+        f"{c}={mask_value(v) if c in table.pii_columns else v}"
+        for c, v in zip(table.key_columns, key)
+    )
 
 
-def _fmt_val(value) -> str:
+def _fmt_val(table: TableConfig, column: str, value) -> str:
+    if column in table.pii_columns:
+        return mask_value(value)
     if value is None:
         return "NULL"
     if isinstance(value, Decimal):

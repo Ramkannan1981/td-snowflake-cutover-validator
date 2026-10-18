@@ -14,7 +14,8 @@
       "ddl": "../sample-data/ddl/sales_customer.sql",
       "csv": "sales_customer.csv",
       "key_columns": ["customer_id"],
-      "numeric_columns": []
+      "numeric_columns": [],
+      "pii_columns": ["customer_name"]
     },
     {
       "name": "sales.contract",

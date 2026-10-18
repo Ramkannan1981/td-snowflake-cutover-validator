@@ -38,6 +38,8 @@ def test_config_reads_table_list(config):
     assert orders.key_columns == ["order_id"]
     assert orders.numeric_columns == ["order_amount"]
     assert orders.load_name == "sales_orders"
+    assert orders.pii_columns == []  # optional, defaults to none
+    assert config.tables[1].pii_columns == ["customer_name"]
     assert orders.ddl == ROOT / "sample-data" / "ddl" / "sales_orders.sql"
     assert config.source_dir == ROOT / "sample-data" / "source"
     assert config.target_dir == ROOT / "sample-data" / "target"
@@ -113,3 +115,43 @@ def test_missing_csv_gives_clear_error(tmp_path):
     assert "sales.orders" in message
     assert "target" in message
     assert "sales_orders.csv" in message
+
+
+FAKE_NAME = "Zelda Fakeperson"
+GOOD_ROWS = "".join(f"{i},Name {i},NS\n" for i in range(1, 31))  # file lines 2-31
+
+
+@pytest.mark.parametrize(
+    "bad_row, reason",
+    [
+        (f"31,{FAKE_NAME},NS,extra\n".encode(), "wrong number of columns"),
+        (f"31,{FAKE_NAME}\n".encode(), "wrong number of columns"),
+        (f'31,"{FAKE_NAME},NS\n'.encode(), "unterminated quote"),
+        (b"31,Zelda \xff Fakeperson,NS\n", "not valid UTF-8"),
+    ],
+    ids=["extra-column", "missing-column", "unterminated-quote", "invalid-utf8"],
+)
+def test_malformed_csv_error_names_line_but_not_values(tmp_path, bad_row, reason):
+    path = tmp_path / "sales_customer.csv"
+    path.write_bytes(b"customer_id,customer_name,region_code\n" + GOOD_ROWS.encode() + bad_row)
+
+    with DuckDBAdapter() as db:
+        with pytest.raises(DataLoadError) as err:
+            db.load_csv("target", "sales_customer", path)
+
+    message = str(err.value)
+    assert "sales_customer.csv" in message
+    assert "line 32" in message
+    assert reason in message
+    assert "Fakeperson" not in message
+    assert "\n" not in message
+    # The DuckDB error (which quotes the row) must not travel with it either.
+    assert err.value.__cause__ is None and err.value.__suppress_context__
+
+
+def test_empty_csv_gives_clear_error(tmp_path):
+    path = tmp_path / "empty.csv"
+    path.write_text("")
+    with DuckDBAdapter() as db:
+        with pytest.raises(DataLoadError, match="empty.csv.*no header"):
+            db.load_csv("source", "x", path)

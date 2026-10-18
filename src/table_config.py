@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -25,6 +25,7 @@ class TableConfig:
     csv: str                    # file name inside source_dir / target_dir
     key_columns: list[str]
     numeric_columns: list[str]
+    pii_columns: list[str] = field(default_factory=list)  # values masked in all output
 
     @property
     def load_name(self) -> str:
@@ -79,7 +80,8 @@ def _parse_table(raw, index: int, base: Path) -> TableConfig:
     if not key_columns:
         raise ConfigError(f"{where}: key_columns must list at least one column")
     numeric_columns = _require(raw, "numeric_columns", list, where)
-    for column in key_columns + numeric_columns:
+    pii_columns = _require(raw, "pii_columns", list, where) if "pii_columns" in raw else []
+    for column in key_columns + numeric_columns + pii_columns:
         _check_identifier(column, where)
 
     return TableConfig(
@@ -88,6 +90,7 @@ def _parse_table(raw, index: int, base: Path) -> TableConfig:
         csv=_require(raw, "csv", str, where),
         key_columns=key_columns,
         numeric_columns=numeric_columns,
+        pii_columns=pii_columns,
     )
 
 

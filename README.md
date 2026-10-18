@@ -69,7 +69,7 @@ that became an empty string. The tool catches all of them:
 
 
 ```
-Cutover readiness  run_id=20261018T100947Z-cfa45a0b
+Cutover readiness  run_id=20261018T104542Z-b18e4ddd
 Decision: NO-GO
 
   TABLE           DDL                     RECONCILIATION  READY
@@ -83,7 +83,7 @@ Blocking reasons:
   - sales.orders: row_diff FAIL: 2 key(s) with different values: order_id=1007: status_code NULL vs ''; order_id=1012: order_amount '100.01' vs '100.00'
   - sales.customer: row_count FAIL: source=20, target=21
   - sales.customer: duplicate_keys FAIL: 1 duplicate key(s) in target: customer_id=9 (2 rows)
-  - sales.customer: row_diff FAIL: 1 key(s) with different values: customer_id=1: customer_name 'Sydney Harbour Traders' vs 'SYDNEY HARBOUR TRADERS'
+  - sales.customer: row_diff FAIL: 1 key(s) with different values: customer_id=1: customer_name S***#347c vs S***#a266
   - sales.contract: DDL NEEDS_REVIEW: column 'validity' uses type PERIOD(DATE), which has no safe Snowflake equivalent
 
 Warnings (not blocking):
@@ -92,13 +92,16 @@ Warnings (not blocking):
   - sales.customer: Dropped PRIMARY INDEX (customer_id); Snowflake has no equivalent.
 ```
 
-Two things worth noting:
+Three things worth noting:
 
 - The **SET table warning** from the DDL step predicts a risk (Snowflake won't
   reject duplicates), and reconciliation then **finds the duplicate** in the data.
 - `sales.contract` **passes reconciliation** but is still blocked, because its
   DDL uses PERIOD(DATE) and needs review. Results are shown per table, so a
   data match never hides a DDL problem.
+- `customer_name` is listed in `pii_columns`, so its values are masked
+  (`S***#347c` vs `S***#a266`): the case difference is caught without
+  showing the names. The hash changes every run.
 
 ## Known limitations
 

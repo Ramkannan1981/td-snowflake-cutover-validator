@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -60,8 +61,18 @@ def test_customer_case_difference_detected(results):
     assert check.status == CheckStatus.FAIL
     assert "customer_id=1" in check.detail
     assert "customer_name" in check.detail
-    assert "'Sydney Harbour Traders'" in check.detail
-    assert "'SYDNEY HARBOUR TRADERS'" in check.detail
+
+
+def test_pii_column_difference_is_masked_in_detail(results):
+    # customer_name is PII: the case difference must still FAIL, but the
+    # detail shows only masked forms, and the two masks differ.
+    check = by_check(results["sales.customer"])["row_diff"]
+    assert check.status == CheckStatus.FAIL
+    assert "sydney harbour traders" not in check.detail.lower()
+
+    masks = re.findall(r"S\*\*\*#[0-9a-f]{4}", check.detail)
+    assert len(masks) == 2, check.detail
+    assert masks[0] != masks[1]
 
 
 def test_orders_sum_differs_beyond_tolerance(results):

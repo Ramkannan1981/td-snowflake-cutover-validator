@@ -47,9 +47,12 @@ was checked.
 ## Config and secrets
 
 - The tables to validate come only from `config/tables.json`: name, DDL file,
-  CSV file, key columns and numeric columns. Adding a table means adding an
-  entry, not changing code. Relative paths are resolved from the config
-  file's own folder.
+  CSV file, key columns, numeric columns and optional `pii_columns`. Adding a
+  table means adding an entry, not changing code. Relative paths are resolved
+  from the config file's own folder.
+- Values in `pii_columns` show as e.g. `S***#a1b2` in output. Two different
+  masks mean the values differ. The hash key is random per run, so compare
+  masks within one report only, not across runs.
 - The local core path uses no credentials and reads no environment variables.
 - `.env.example` lists placeholder names for a future Snowflake connection
   (account, user, role, warehouse, database, key path). Real values go in

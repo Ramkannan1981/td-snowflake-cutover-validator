@@ -106,3 +106,34 @@ def test_missing_ddl_file_exits_2(tmp_path, capsys):
     assert code == 2
     assert "gone.sql" in err
     assert "Traceback" not in err
+
+
+def test_pii_values_never_in_report_or_output(tmp_path, capsys):
+    code, out, err = run(capsys, "--config", str(CONFIG), "--reports-dir", str(tmp_path))
+    assert code == 1
+    report = next(tmp_path.glob("*.json")).read_text()
+
+    for text in (report, out, err):
+        assert "sydney harbour traders" not in text.lower()
+    # The difference is still reported, in masked form.
+    assert re.search(r"customer_name S\*\*\*#[0-9a-f]{4} vs S\*\*\*#[0-9a-f]{4}", report)
+
+
+def test_malformed_csv_exits_2_without_leaking_row_values(tmp_path, capsys):
+    shutil.copytree(ROOT / "sample-data" / "source", tmp_path / "source")
+    shutil.copytree(ROOT / "sample-data" / "target", tmp_path / "target")
+    bad = tmp_path / "target" / "sales_customer.csv"
+    bad.write_text(bad.read_text() + "99,Zelda Fakeperson,NS,2024-01-01,unexpected\n")
+    config = write_config(
+        tmp_path, source_dir=str(tmp_path / "source"), target_dir=str(tmp_path / "target")
+    )
+
+    code, out, err = run(capsys, "--config", str(config), "--reports-dir", str(tmp_path / "reports"))
+
+    assert code == 2
+    assert "Fakeperson" not in out + err
+    assert "Traceback" not in err
+    errors = [l for l in err.splitlines() if " ERROR " in l]
+    assert len(errors) == 1
+    assert "sales_customer.csv" in errors[0] and "line 23" in errors[0]
+    assert not (tmp_path / "reports").exists()
