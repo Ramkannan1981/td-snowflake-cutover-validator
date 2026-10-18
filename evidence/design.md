@@ -40,6 +40,8 @@ flowchart LR
     end
     SF -.-> DS
     SF -.-> ST
+    DS -.-> CON
+    ST -.-> CON
 ```
 
 In this repo, both databases are simulated locally (see "Why DuckDB").
