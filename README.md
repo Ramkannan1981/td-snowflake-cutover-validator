@@ -1,4 +1,4 @@
-# Teradata → Snowflake Cutover Validator
+# Teradata → Snowflake Migration Readiness Gate
 
 During a Teradata to Snowflake parallel run, both systems are live while data
 marts and consumers move across. This tool answers one question: **is it safe

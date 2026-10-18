@@ -28,7 +28,7 @@ flowchart LR
     TD -- "cold data: Spark ETL (simulated here)" --> SF
     TD -. "Phase 1: reads Teradata" .-> CON["Consumers<br/>BI / dashboards"]
 
-    TD --> V{{Cutover validator<br/>this tool}}
+    TD --> V{{Migration readiness gate<br/>this tool}}
     SF --> V
     V -- GO --> P2["Phase 2 cutover:<br/>repoint consumers"]
     V -- NO-GO --> FIX["Fix issues, re-run"]
