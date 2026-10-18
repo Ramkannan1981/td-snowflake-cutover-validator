@@ -26,13 +26,13 @@ flowchart LR
     SRC --> SF[(Snowflake)]
     TD -- "data marts: export + import (simulated here)" --> SF
     TD -- "cold data: Spark ETL (simulated here)" --> SF
-    TD -. "Phase 1: consumers read here" .-> CON["Consumers<br/>BI / dashboards"]
+    TD -. "Phase 1: reads Teradata" .-> CON["Consumers<br/>BI / dashboards"]
 
     TD --> V{{Cutover validator<br/>this tool}}
     SF --> V
-    V -- GO --> P2["Phase 2: BI / dashboard consumers switch to Snowflake"]
+    V -- GO --> P2["Phase 2 cutover:<br/>repoint consumers"]
     V -- NO-GO --> FIX["Fix issues, re-run"]
-    P2 -.-> CON
+    P2 -. "after GO: reads Snowflake" .-> CON
 
     subgraph FUT["Future layers on Snowflake: designed for, not built"]
         DS["Data science / AI<br/>Snowpark, Snowflake ML, Cortex"]
