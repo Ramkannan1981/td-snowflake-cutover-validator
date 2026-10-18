@@ -46,6 +46,31 @@ flowchart LR
 
 In this repo, both databases are simulated locally (see "Why DuckDB").
 
+## Indicative timeline
+
+Illustrative only, based on a previous Teradata to Snowflake migration for a
+bank that took 16-17 months end to end, including sign-off and decommissioning.
+Real durations depend on the number of data marts, dashboards and test cases.
+
+```mermaid
+flowchart LR
+    A["Plan and design<br/>strategy, data model<br/>2-3 months"]
+    B["Phase 1: parallel run<br/>dual feed, data marts in waves,<br/>cold data loads<br/>6-8 months"]
+    C["Testing and UAT<br/>per wave, consumer sign-off<br/>3-4 months"]
+    D{{"Cutover gate<br/>GO / NO-GO"}}
+    E["Phase 2: cutover<br/>repoint consumers wave by wave<br/>1-2 weeks per wave + hypercare"]
+    F["Stabilise and monitor<br/>Teradata still live for rollback<br/>2-3 months"]
+    G["Decommission Teradata<br/>sign-off, archive, switch off<br/>1-2 months"]
+    A --> B --> C --> D
+    D -- GO --> E --> F --> G
+    D -- NO-GO --> C
+```
+
+This tool runs during Phase 1 and testing (repeatedly, through the bank's
+scheduler) and gives the evidence for each GO / NO-GO decision. In my
+experience the stabilisation step is where programmes stall when exit criteria
+are not agreed up front, which is why the gate's criteria are explicit.
+
 ## Components and data flow
 
 ```
