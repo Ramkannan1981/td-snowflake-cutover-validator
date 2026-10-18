@@ -106,4 +106,14 @@ Teradata-only keywords, then runs the CLI on the sample data, expecting
 NO-GO (exit 1) and treating any other failure as a real error.
 
 ### My review / corrections
-- (add after running it)
+- Ran scripts/verify.sh myself: pytest (42 passing), Snowflake SQL check
+  (2/2 converted tables valid; the NEEDS_REVIEW table is skipped, not
+  silently passed), and the CLI returning NO-GO as expected.
+- The agent moved the Teradata-leftover check from the tests into
+  src/snowflake_check.py, so tests and verify.sh share one check. I accepted
+  this and confirmed it added negative tests (PRIMARY INDEX, NOT CASESPECIFIC,
+  non-CREATE statements are rejected).
+- Confirmed verify.sh fails if the sample data ever returns GO, because the
+  planted issues must always be caught.
+- Known limit: this checks Snowflake syntax and Teradata leftovers, not
+  runtime behaviour. A live Snowflake run is not included (see decisions.md).
