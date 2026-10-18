@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import pytest
@@ -6,31 +5,14 @@ import sqlglot
 from sqlglot import exp
 
 from src.ddl_converter import Status, convert_ddl, convert_file
+from src.snowflake_check import snowflake_sql_problems
 
 DDL_DIR = Path(__file__).resolve().parent.parent / "sample-data" / "ddl"
 
-# Teradata-only syntax that sqlglot will happily pass through to "Snowflake"
-# output if not stripped. None of these are valid in Snowflake CREATE TABLE.
-TERADATA_ONLY = [
-    r"\bMULTISET\b",
-    r"\bSET\s+TABLE\b",
-    r"\bPRIMARY\s+INDEX\b",
-    r"\bFALLBACK\b",
-    r"\bJOURNAL\b",
-    r"\bCASESPECIFIC\b",
-    r"\bCHARACTER\s+SET\b",
-    r"\bFORMAT\b",
-    r"\bPERIOD\b",
-]
-
 
 def assert_valid_snowflake(sql: str) -> exp.Create:
-    for pattern in TERADATA_ONLY:
-        assert not re.search(pattern, sql, re.IGNORECASE), f"{pattern} found in: {sql}"
-    parsed = sqlglot.parse_one(sql, read="snowflake", error_level=sqlglot.ErrorLevel.RAISE)
-    assert isinstance(parsed, exp.Create)
-    assert parsed.kind == "TABLE"
-    return parsed
+    assert snowflake_sql_problems(sql) == [], sql
+    return sqlglot.parse_one(sql, read="snowflake")
 
 
 def column_types(create: exp.Create) -> dict[str, str]:
@@ -38,6 +20,19 @@ def column_types(create: exp.Create) -> dict[str, str]:
         col.name: col.args["kind"].sql("snowflake")
         for col in create.find_all(exp.ColumnDef)
     }
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "CREATE TABLE s.t (id INT) PRIMARY INDEX (id)",
+        "CREATE TABLE s.t (nm VARCHAR(10) NOT CASESPECIFIC)",
+        "SELECT 1",
+    ],
+    ids=["primary-index", "casespecific", "not-create-table"],
+)
+def test_snowflake_check_rejects_teradata_leftovers(sql):
+    assert snowflake_sql_problems(sql) != []
 
 
 # --- MULTISET: plain conversion -------------------------------------------

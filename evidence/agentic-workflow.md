@@ -72,3 +72,38 @@ tests first.
    bad config) with a clear message, not a stack trace.
 
 Do not run git commands. Run pytest and the CLI at the end and show both outputs.
+## Prompt 3 – Reconciliation, cutover gate, report and CLI
+Asked the agent to write tests first for each planted issue, then implement
+reconciliation checks (row count, duplicate keys, sums with tolerance, null
+counts, row-level diff on keys), a gate combining DDL and reconciliation
+results into a per-table summary and overall GO / NO-GO, and a CLI with a
+run_id, structured logging, a JSON report and exit codes (0 GO, 1 NO-GO,
+2 input/config error).
+
+### My review / corrections
+- Ran the tests (39 passing) and the CLI myself. Checked every planted issue
+  is reported with the exact row: duplicate customer_id=9, the case change on
+  customer_id=1, the 100.01 vs 100.00 rounding, and NULL vs '' on
+  order_id=1007.
+- Asked for per-table results so a table can pass reconciliation while still
+  blocked on DDL. Confirmed sales.contract shows reconciliation PASS but
+  DDL NEEDS_REVIEW, so the gate is NO-GO for the right reason.
+- Confirmed a GO path is tested, not only NO-GO.
+- Checked the failure path: a missing config gives exit code 2 and a one-line
+  error, not a stack trace.
+- Kept the sum tolerance strict (0.005), so the 0.01 rounding difference
+  fails. For financial amounts I'd rather surface differences and let data
+  owners agree any tolerance than hide them.
+- Noted the SET table warning from the DDL step is confirmed by the duplicate
+  found in reconciliation: the DDL check predicts the risk, the data check
+  proves it.
+- Reviewed the output with Claude chat as a second check before committing.
+
+## Prompt 4 – Verify script
+Asked the agent for scripts/verify.sh that runs the tests, checks every
+CONVERTED Snowflake SQL parses in the Snowflake dialect and contains no
+Teradata-only keywords, then runs the CLI on the sample data, expecting
+NO-GO (exit 1) and treating any other failure as a real error.
+
+### My review / corrections
+- (add after running it)
