@@ -1,0 +1,27 @@
+{
+  "source_dir": "../sample-data/source",
+  "target_dir": "../sample-data/target",
+  "tables": [
+    {
+      "name": "sales.orders",
+      "ddl": "../sample-data/ddl/sales_orders.sql",
+      "csv": "sales_orders.csv",
+      "key_columns": ["order_id"],
+      "numeric_columns": ["order_amount"]
+    },
+    {
+      "name": "sales.customer",
+      "ddl": "../sample-data/ddl/sales_customer.sql",
+      "csv": "sales_customer.csv",
+      "key_columns": ["customer_id"],
+      "numeric_columns": []
+    },
+    {
+      "name": "sales.contract",
+      "ddl": "../sample-data/ddl/sales_contract.sql",
+      "csv": "sales_contract.csv",
+      "key_columns": ["contract_id"],
+      "numeric_columns": ["contract_value"]
+    }
+  ]
+}

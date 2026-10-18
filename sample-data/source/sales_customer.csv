@@ -1,0 +1,21 @@
+customer_id,customer_name,region_code,signup_date
+1,Sydney Harbour Traders,NS,2023-01-01
+2,Melbourne Fresh Foods,VI,2023-02-02
+3,Brisbane Auto Parts,QL,2023-03-03
+4,Perth Mining Supplies,WA,2023-04-04
+5,Adelaide Wine Co,SA,2023-05-05
+6,Hobart Marine,TA,2023-06-06
+7,Darwin Logistics,NT,2023-07-07
+8,Canberra Office Supply,AC,2023-08-08
+9,Gold Coast Surf,QL,2023-09-09
+10,Newcastle Steelworks,NS,2023-10-10
+11,Geelong Textiles,VI,2023-11-11
+12,Cairns Tours,QL,2023-12-12
+13,Wollongong Builders,NS,2023-01-13
+14,Ballarat Bakery,VI,2023-02-14
+15,Bendigo Hardware,VI,2023-03-15
+16,Toowoomba Grain,QL,2023-04-16
+17,Launceston Timber,TA,2023-05-17
+18,Mackay Sugar,QL,2023-06-18
+19,Albury Freight,NS,2023-07-19
+20,Bunbury Dairy,WA,2023-08-20
