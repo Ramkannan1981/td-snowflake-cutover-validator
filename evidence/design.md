@@ -24,8 +24,8 @@ with what is in Teradata, and decides whether Phase 2 can start.
 flowchart LR
     SRC[Upstream sources] --> TD[(Teradata)]
     SRC --> SF[(Snowflake)]
-    TD -- "data marts: export + import" --> SF
-    TD -- "cold data: Spark ETL" --> SF
+    TD -- "data marts: export + import (simulated here)" --> SF
+    TD -- "cold data: Spark ETL (simulated here)" --> SF
     TD -. "Phase 1: consumers read here" .-> CON[Consumers]
 
     TD --> V{{Cutover validator<br/>this tool}}
@@ -33,6 +33,15 @@ flowchart LR
     V -- GO --> P2["Phase 2: consumers switch to Snowflake"]
     V -- NO-GO --> FIX["Fix issues, re-run"]
     P2 -.-> CON
+
+    subgraph FUT["Future layers on Snowflake: designed for, not built"]
+        BI["BI / dashboards<br/>Dynamic Tables"]
+        DS["Data science / AI<br/>Snowpark, Snowflake ML, Cortex"]
+        ST["Streaming<br/>Snowpipe Streaming"]
+    end
+    SF -.-> BI
+    SF -.-> DS
+    SF -.-> ST
 ```
 
 In this repo, both databases are simulated locally (see "Why DuckDB").
