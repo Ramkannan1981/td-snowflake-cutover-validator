@@ -103,6 +103,31 @@ Three things worth noting:
   (`S***#347c` vs `S***#a266`): the case difference is caught without
   showing the names. The hash changes every run.
 
+## Data quality and governance
+
+**Data quality checks (built):** for every table in `config/tables.json`
+
+| Check | Catches |
+|---|---|
+| Row count | Missing or extra rows |
+| Duplicate keys | Duplicates Snowflake allows but a Teradata SET table rejected |
+| Sums of numeric columns, with tolerance | Rounding or precision drift |
+| NULL and empty-string counts | NULLs turned into empty strings during export/load |
+| Row-level diff by key | Changed values, e.g. case changes |
+
+**Governance (built):**
+- **PII masking:** columns listed in `pii_columns` are still compared, but
+  their values are masked in logs, reports and errors.
+- **Safe abstain:** unknown Teradata DDL is marked NEEDS_REVIEW, never guessed.
+- **Audit trail:** every run has a `run_id`, and its GO / NO-GO report is saved
+  as evidence for the cutover decision.
+- **No secrets or real data** in the repo; synthetic data only.
+
+**Governance in production (proposed):** read-only roles for the validator,
+Snowflake masking policies and RBAC, reports kept in an encrypted S3 bucket,
+and exit criteria agreed with data owners before each wave. See
+`evidence/design.md`.
+
 ## Known limitations
 
 - **No live Snowflake run.** DuckDB stands in for both systems behind an
