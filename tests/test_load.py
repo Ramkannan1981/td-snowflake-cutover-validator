@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters import DataLoadError, DuckDBAdapter
-from table_config import ConfigError, load_config
+from src.adapters import DataLoadError, DuckDBAdapter
+from src.table_config import ConfigError, load_config
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "tables.json"

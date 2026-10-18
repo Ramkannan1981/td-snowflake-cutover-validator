@@ -38,3 +38,37 @@ tests first.
   more tables means adding config, not changing code.
 - Snowflake adapter deliberately not implemented; interface leaves a clear
   plug-in point.
+
+
+## Phase 2 (cutover readiness). Read evidence/intent.md and config/tables.json first.
+
+1. Write tests FIRST in tests/test_reconcile.py, using the existing sample data:
+   - sales_contract: all reconciliation checks PASS
+   - sales_customer: duplicate key detected in target (FAIL), and the
+     'Sydney Harbour Traders' vs 'SYDNEY HARBOUR TRADERS' case difference is
+     detected (FAIL)
+   - sales_orders: sum of order_amount differs beyond tolerance (FAIL), and
+     NULL in source vs empty string in target is detected (FAIL)
+   - the gate returns NO-GO if ANY table has a FAIL or a NEEDS_REVIEW DDL status;
+     GO only when every table passes and every DDL is CONVERTED or
+     CONVERTED_WITH_WARNING
+
+2. Implement src/reconcile.py using the DuckDB adapter. Checks per table:
+   row count, duplicate keys in target, sum of numeric columns (configurable
+   tolerance, default 0.005), null counts per column (treat empty string in
+   target as a mismatch vs NULL in source), and a row-level diff on key
+   columns to catch value differences such as case.
+   Return typed results (dataclasses): table, check, status PASS/FAIL, detail.
+
+3. Implement src/gate.py: combine DDL results and reconciliation results into
+   a per-table summary and an overall GO / NO-GO with reasons.
+   The report must show per-table results, so a table can PASS reconciliation
+   while still being NEEDS_REVIEW on DDL.
+
+4. Implement src/cli.py (run with: python -m src.cli --config config/tables.json):
+   generate a run_id (timestamp + short uuid), use Python logging with run_id
+   in every line, write reports/<run_id>.json and print a readable summary.
+   Exit code 0 for GO, 1 for NO-GO, 2 for an input/config error (missing file,
+   bad config) with a clear message, not a stack trace.
+
+Do not run git commands. Run pytest and the CLI at the end and show both outputs.

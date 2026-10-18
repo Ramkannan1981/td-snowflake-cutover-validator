@@ -5,7 +5,7 @@ import pytest
 import sqlglot
 from sqlglot import exp
 
-from ddl_converter import Status, convert_ddl, convert_file
+from src.ddl_converter import Status, convert_ddl, convert_file
 
 DDL_DIR = Path(__file__).resolve().parent.parent / "sample-data" / "ddl"
 

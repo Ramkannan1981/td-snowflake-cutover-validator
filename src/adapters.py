@@ -21,7 +21,7 @@ from pathlib import Path
 
 import duckdb
 
-from table_config import ValidationConfig
+from .table_config import ValidationConfig
 
 SOURCE_SCHEMA = "source"
 TARGET_SCHEMA = "target"
@@ -42,6 +42,11 @@ class DatabaseAdapter(ABC):
 
     @abstractmethod
     def row_count(self, schema: str, table: str) -> int:
+        ...
+
+    @abstractmethod
+    def columns(self, schema: str, table: str) -> list[str]:
+        """Column names in table order."""
         ...
 
     def close(self) -> None:
@@ -72,6 +77,14 @@ class DuckDBAdapter(DatabaseAdapter):
 
     def row_count(self, schema: str, table: str) -> int:
         return self.query(f"SELECT COUNT(*) FROM {schema}.{table}")[0][0]
+
+    def columns(self, schema: str, table: str) -> list[str]:
+        rows = self.query(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema = ? AND table_name = ? ORDER BY ordinal_position",
+            [schema, table],
+        )
+        return [r[0] for r in rows]
 
     def load_tables(self, config: ValidationConfig) -> None:
         """Load every configured table's source and target CSV.
