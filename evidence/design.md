@@ -13,6 +13,10 @@ The migration it supports runs in two phases:
   data is moved by Spark ETL. Consumers still read from Teradata.
 - **Phase 2, cutover.** Consumers switch to Snowflake once the gate says GO.
 
+In this slice, both data movements are simulated: synthetic CSV extracts are
+loaded into DuckDB for both sides. The checks don't depend on how the data
+was loaded.
+
 This tool runs between the two phases. It compares what landed in Snowflake
 with what is in Teradata, and decides whether Phase 2 can start.
 

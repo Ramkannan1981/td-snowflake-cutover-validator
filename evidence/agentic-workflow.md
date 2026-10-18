@@ -39,8 +39,18 @@ tests first.
 - Snowflake adapter deliberately not implemented; interface leaves a clear
   plug-in point.
 
+## Prompt 3 – Reconciliation, cutover gate, report and CLI
+Asked the agent to write tests first for each planted issue, then implement
+reconciliation checks (row count, duplicate keys, sums with tolerance, null
+counts, row-level diff on keys), a gate combining DDL and reconciliation
+results into a per-table summary and overall GO / NO-GO, and a CLI with a
+run_id, structured logging, a JSON report and exit codes (0 GO, 1 NO-GO,
+2 input/config error).
 
-## Phase 2 (cutover readiness). Read evidence/intent.md and config/tables.json first.
+**Prompt as sent:**
+
+```text
+Phase 2 (cutover readiness). Read evidence/intent.md and config/tables.json first.
 
 1. Write tests FIRST in tests/test_reconcile.py, using the existing sample data:
    - sales_contract: all reconciliation checks PASS
@@ -72,13 +82,7 @@ tests first.
    bad config) with a clear message, not a stack trace.
 
 Do not run git commands. Run pytest and the CLI at the end and show both outputs.
-## Prompt 3 – Reconciliation, cutover gate, report and CLI
-Asked the agent to write tests first for each planted issue, then implement
-reconciliation checks (row count, duplicate keys, sums with tolerance, null
-counts, row-level diff on keys), a gate combining DDL and reconciliation
-results into a per-table summary and overall GO / NO-GO, and a CLI with a
-run_id, structured logging, a JSON report and exit codes (0 GO, 1 NO-GO,
-2 input/config error).
+```
 
 ### My review / corrections
 - Ran the tests (39 passing) and the CLI myself. Checked every planted issue
