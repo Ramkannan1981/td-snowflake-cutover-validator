@@ -134,3 +134,17 @@ experience, with Claude chat helping structure it.
   with CSV extracts in this slice.
 - Agent added .env.example unprompted; kept it, confirmed it has empty
   placeholders only.
+
+## Prompt 6 – Final README and clean-checkout test
+Asked the agent to rewrite README.md for an assessor and run a clean-checkout
+test of the setup steps.
+
+### My review / corrections
+- The clean-checkout test picked up macOS's built-in Python 3.9, which can't
+  install the pinned packages. I kept the code and dependencies as they are
+  and made the README state Python 3.10+ explicitly, with the macOS note.
+- Wrote the final README with Claude chat from a real run, so the example
+  output is genuine, not invented, and checked every CLI option against --help.
+- Replaced an uncropped screenshot uploaded via the GitHub website with a
+  cropped version, so no personal account details are shown.
+- Final check from a fresh clone: setup, then verify.sh, all PASS.
