@@ -35,6 +35,9 @@ The last column shows what this repo handles today.
 
 | Teradata | Snowflake |
 |---|---|
+| Compute and storage coupled (nodes and AMPs); scaling means adding hardware | Storage separate from compute. Compute is **virtual warehouses**, sized and started independently, with auto-suspend and auto-resume |
+| One system shared by all workloads | One virtual warehouse per workload (ETL, BI, data science, validation), so heavy jobs don't slow dashboards and each workload's cost is visible |
+| Concurrency limited by the appliance | Multi-cluster warehouses add clusters automatically under high concurrency (Enterprise edition) |
 | Workload management (TASM) | Separate virtual warehouses, resource monitors |
 | Viewpoint monitoring | Snowsight, Query History, `ACCOUNT_USAGE` views |
 | DBA-managed space and tuning | Platform admin and FinOps: warehouse sizing, cost monitoring, RBAC |
