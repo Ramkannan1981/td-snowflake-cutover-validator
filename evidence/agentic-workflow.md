@@ -148,3 +148,8 @@ test of the setup steps.
 - Replaced an uncropped screenshot uploaded via the GitHub website with a
   cropped version, so no personal account details are shown.
 - Final check from a fresh clone: setup, then verify.sh, all PASS.
+
+## Step 7 – Teradata to Snowflake mapping (written by me)
+Added docs/teradata-snowflake-mapping.md from my Teradata migration
+experience, with Claude chat helping structure it. The "In this repo" column
+is kept honest: only items the code actually handles are marked.

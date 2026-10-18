@@ -123,6 +123,7 @@ Two things worth noting:
 | `evidence/operate.md` | Running, logs, config and secrets, failure modes, rollback |
 | `evidence/decisions.md` | Five decision records, including what I deliberately did not build |
 | `evidence/snowflake-trial-card-required.png` | Snowflake trial sign-up requiring a credit card (decisions #4) |
+| `docs/teradata-snowflake-mapping.md` | Teradata → Snowflake mapping: BTEQ, utilities, DDL, operations |
 
 ## Build log
 
