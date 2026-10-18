@@ -117,3 +117,22 @@ A `SnowflakeAdapter` is not implemented in this repo.
 
 Secrets come from the orchestrator's or cloud provider's secret store at each
 stage; nothing is stored in the repo.
+
+## Future consumers: designed for, not built here
+
+A bank doesn't buy Snowflake only to replace a warehouse. Data science, AI and
+streaming users follow soon after cutover, so the migration should not block
+them. The platform is designed for three layers sharing one governance model:
+
+| Layer | Consumers | Snowflake capability |
+|---|---|---|
+| Data warehouse / BI | Dashboards, reports | Tables, views, Dynamic Tables |
+| Data science / AI | Feature engineering, ML models | Snowpark (Python in Snowflake), Snowflake ML feature store, Cortex |
+| Streaming | Near-real-time use cases, e.g. fraud signals | Snowpipe Streaming |
+| Open formats | Other engines such as Spark | Apache Iceberg tables |
+
+What this means during migration: separate warehouses per layer (so data
+science workloads don't slow dashboards), sandbox schemas for data
+scientists, and one set of roles, masking policies and lineage across all
+layers. Each layer is built when its use case is approved.
+\n

@@ -43,3 +43,5 @@ real cutover decision.
   scheduled in Control-M, but investigating failures was manual and slow.
   That is where I'd add an agent next, with read-only tools, keeping the
   checks themselves deterministic.
+- Streaming and data science pipelines: the platform is designed for them
+  (see design.md, Future consumers) but they are built when use cases are approved.
