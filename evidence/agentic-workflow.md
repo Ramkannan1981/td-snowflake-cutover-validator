@@ -153,3 +153,15 @@ test of the setup steps.
 Added docs/teradata-snowflake-mapping.md from my Teradata migration
 experience, with Claude chat helping structure it. The "In this repo" column
 is kept honest: only items the code actually handles are marked.
+
+## Prompt 8 – PII masking in reports and logs
+Noticed failure details printed raw values (e.g. a customer name), which on
+real data would leak PII into logs and report files. Asked the agent to add
+pii_columns to config and mask those values everywhere they are shown, while
+still comparing them.
+
+### My review / corrections
+- Confirmed the customer_name difference is still detected (FAIL) but shown
+  masked, and the raw name no longer appears in the report or logs.
+- Kept PII detection out of scope: columns are marked in config by data
+  owners, not guessed.
