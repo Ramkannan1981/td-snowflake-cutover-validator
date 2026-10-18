@@ -165,11 +165,11 @@ still comparing them.
   masked, and the raw name no longer appears in the report or logs.
 - Kept PII detection out of scope: columns are marked in config by data
   owners, not guessed.
-
-  - The agent flagged two further leak paths: the README example still showed
+- The agent flagged two further leak paths: the README example still showed
   the raw name, and DuckDB errors on a malformed CSV could print row contents.
   Fixed both: README now shows the masked output from a real run, and load
   errors name the file and line only, never values.
-
-  - Caught a regression from the PII change: the summary table lost its column
-  spacing. Had it fixed and added a test for the table layout.
+- Thought the summary table had lost its column spacing after the PII change.
+  On checking from a fresh clone, the CLI output was correct; the spaces were
+  lost when I copied terminal output into chat. No code change was needed,
+  although the commit message mentions a spacing fix.

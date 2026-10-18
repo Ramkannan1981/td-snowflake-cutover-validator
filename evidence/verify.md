@@ -27,7 +27,7 @@ Run on 2026-10-18 (Python 3.10.13, duckdb 1.5.6, sqlglot 30.23.0):
 
 ```
 ==== [1/3] pytest ====
-42 passed in 0.50s
+54 passed in 1.04s
 
 ==== [2/3] converted SQL is valid Snowflake ====
   ok    sales.orders: CONVERTED
@@ -56,7 +56,7 @@ Each planted issue is reported in the NO-GO reasons with the exact row:
 | Planted issue | Check that caught it |
 |---|---|
 | Duplicate row in the SET table target (`customer_id=9`) | `duplicate_keys`, `row_count` (20 vs 21) |
-| Case change (`'Sydney Harbour Traders'` vs `'SYDNEY HARBOUR TRADERS'`) | `row_diff` |
+| Case change on `customer_name` (a PII column, so the values are shown masked, e.g. `S***#3978 vs S***#1ad3`) | `row_diff` |
 | Rounding (`order_amount` 100.01 vs 100.00) | `sum:order_amount` (diff 0.01 > 0.005), `row_diff` |
 | NULL in source, `''` in target (`order_id=1007`) | `null_counts`, `row_diff` |
 | `PERIOD(DATE)` column | DDL `NEEDS_REVIEW`; `sales.contract` data passes but the table is still blocked |

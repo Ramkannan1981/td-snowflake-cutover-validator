@@ -54,7 +54,7 @@ Every log line carries a `run_id`, and each run writes `reports/<run_id>.json`.
 Runs the checks I would run in CI, stopping at the first failure:
 
 1. **pytest**: unit tests for DDL conversion, loading, reconciliation, the
-   gate and the CLI (42 tests).
+   gate, the CLI, PII masking and load errors (54 tests).
 2. **Snowflake SQL check**: every converted table's SQL parses in the
    Snowflake dialect and contains no Teradata-only syntax (PRIMARY INDEX,
    FALLBACK, CASESPECIFIC, PERIOD, ...).
