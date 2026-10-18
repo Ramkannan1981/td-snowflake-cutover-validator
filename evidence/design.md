@@ -156,6 +156,88 @@ A `SnowflakeAdapter` is not implemented in this repo.
 Secrets come from the orchestrator's or cloud provider's secret store at each
 stage; nothing is stored in the repo.
 
+## Deployment architecture on AWS (proposed, not built)
+
+Assumes Snowflake runs on AWS (Sydney region) and Teradata stays on-premises
+during the parallel run. DuckDB is only used on a developer laptop and in
+GitHub Actions; every AWS environment uses a `SnowflakeAdapter` against real
+Teradata and Snowflake.
+
+```mermaid
+flowchart TB
+    subgraph GH["GitHub"]
+        PR["Pull request"] --> CI["GitHub Actions CI<br/>verify.sh on DuckDB + sample data"]
+        CI --> IMG["Merge to main:<br/>build and scan container image"]
+    end
+
+    subgraph AWS["AWS account, ap-southeast-2"]
+        ECR["Amazon ECR<br/>validator image"]
+        SCH["Scheduler<br/>MWAA or Step Functions,<br/>or the bank's Control-M"]
+        RUN["ECS Fargate task<br/>validator + SnowflakeAdapter"]
+        SEC["Secrets Manager<br/>Snowflake key-pair"]
+        S3E["S3 export stage<br/>Teradata extracts"]
+        S3R["S3 reports bucket<br/>GO / NO-GO evidence, KMS encrypted"]
+        CW["CloudWatch logs and alarms<br/>SNS alert on NO-GO"]
+    end
+
+    subgraph ENV["Environments, promoted in order: approval gates before UAT and PROD"]
+        direction LR
+        subgraph DEV["DEV"]
+            TDD[(Teradata DEV)]
+            SFD[(Snowflake DEV)]
+        end
+        subgraph STG["STAGING"]
+            TDS[(Teradata STAGING)]
+            SFS[(Snowflake STAGING)]
+        end
+        subgraph UATENV["UAT"]
+            TDU[(Teradata UAT)]
+            SFU[(Snowflake UAT)]
+        end
+        subgraph PRD["PROD"]
+            TDP[(Teradata PROD)]
+            SFP[(Snowflake PROD)]
+        end
+    end
+
+    IMG --> ECR
+    ECR --> RUN
+    SCH --> RUN
+    SEC --> RUN
+    RUN --> ENV
+    RUN --> S3R
+    RUN --> CW
+    TDP -. "TPT export" .-> S3E
+    S3E -. "COPY INTO" .-> SFP
+```
+
+**GitHub deployment steps**
+
+1. **Pull request:** GitHub Actions runs `scripts/verify.sh` on DuckDB and the
+   sample data. No credentials needed, so it runs on every PR.
+2. **Merge to main:** build a container image, scan it, and push it to ECR.
+   GitHub Actions assumes an AWS IAM role through OIDC, so there are no
+   long-lived AWS keys in GitHub.
+3. **DEV:** deployed automatically; runs against Teradata DEV and Snowflake DEV,
+   and runs the converted DDL in Snowflake to confirm it executes.
+4. **STAGING:** deployed automatically after DEV passes; integration tests
+   through the `SnowflakeAdapter`.
+5. **UAT:** manual approval; runs on masked copies of real tables and data
+   owners review the GO / NO-GO reports for their wave.
+6. **PROD:** manual approval; scheduled for the parallel-run tables. Each
+   report is kept in S3 as the audit record for the cutover decision.
+
+**Other AWS services**
+
+| Service | Why |
+|---|---|
+| IAM (least privilege, read-only roles) | The validator only reads both systems |
+| Secrets Manager + KMS | Snowflake key-pair and encryption of reports at rest |
+| AWS PrivateLink | Private connection to Snowflake, no public internet |
+| Direct Connect or VPN | Reach on-premises Teradata from AWS |
+| CloudWatch + SNS | Logs with run_id, alarms and alerts on NO-GO or failed runs |
+| S3 | Export stage for Teradata extracts, and the reports archive |
+
 ## Future consumers: designed for, not built here
 
 A bank doesn't buy Snowflake only to replace a warehouse. Data science, AI and
