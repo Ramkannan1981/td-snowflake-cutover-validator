@@ -26,20 +26,18 @@ flowchart LR
     SRC --> SF[(Snowflake)]
     TD -- "data marts: export + import (simulated here)" --> SF
     TD -- "cold data: Spark ETL (simulated here)" --> SF
-    TD -. "Phase 1: consumers read here" .-> CON[Consumers]
+    TD -. "Phase 1: consumers read here" .-> CON["Consumers<br/>BI / dashboards"]
 
     TD --> V{{Cutover validator<br/>this tool}}
     SF --> V
-    V -- GO --> P2["Phase 2: consumers switch to Snowflake"]
+    V -- GO --> P2["Phase 2: BI / dashboard consumers switch to Snowflake"]
     V -- NO-GO --> FIX["Fix issues, re-run"]
     P2 -.-> CON
 
     subgraph FUT["Future layers on Snowflake: designed for, not built"]
-        BI["BI / dashboards<br/>Dynamic Tables"]
         DS["Data science / AI<br/>Snowpark, Snowflake ML, Cortex"]
-        ST["Streaming<br/>Snowpipe Streaming"]
+        ST["Streaming<br/>Confluent Kafka + Snowpipe Streaming"]
     end
-    SF -.-> BI
     SF -.-> DS
     SF -.-> ST
 ```
@@ -137,7 +135,7 @@ them. The platform is designed for three layers sharing one governance model:
 |---|---|---|
 | Data warehouse / BI | Dashboards, reports | Tables, views, Dynamic Tables |
 | Data science / AI | Feature engineering, ML models | Snowpark (Python in Snowflake), Snowflake ML feature store, Cortex |
-| Streaming | Near-real-time use cases, e.g. fraud signals | Snowpipe Streaming |
+| Streaming | Near-real-time use cases, e.g. fraud signals | Confluent Kafka with the Snowflake Kafka connector, Snowpipe Streaming |
 | Open formats | Other engines such as Spark | Apache Iceberg tables |
 
 What this means during migration: separate warehouses per layer (so data
