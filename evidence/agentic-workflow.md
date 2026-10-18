@@ -117,3 +117,16 @@ NO-GO (exit 1) and treating any other failure as a real error.
   planted issues must always be caught.
 - Known limit: this checks Snowflake syntax and Teradata leftovers, not
   runtime behaviour. A live Snowflake run is not included (see decisions.md).
+
+## Prompt 5 – Evidence pack (design, verify, operate)
+Asked the agent to draft design.md, verify.md and operate.md from what is
+actually in the repo. I wrote decisions.md myself from my migration
+experience, with Claude chat helping structure it.
+
+### My review / corrections
+- Checked the agent marked unbuilt parts (PR pipeline, SnowflakeAdapter,
+  production shape) as proposed, not as built.
+- Checked design.md does not claim Spark is used: cold data is simulated
+  with CSV extracts in this slice.
+- Agent added .env.example unprompted; kept it, confirmed it has empty
+  placeholders only.
