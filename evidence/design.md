@@ -98,3 +98,22 @@ A `SnowflakeAdapter` is not implemented in this repo.
 - **Rollback.** Teradata stays live and fed until GO, and for an agreed period
   after. Rolling back means pointing consumers back to Teradata, not
   restoring data.
+
+## CI/CD path (not built here)
+
+1. **Build.** On every pull request, the pipeline installs pinned
+   dependencies from `requirements.txt` and builds a versioned package.
+2. **Verify.** The pipeline runs `scripts/verify.sh`: unit tests, the
+   Snowflake syntax check, and the CLI on the sample data, which must return
+   NO-GO. A change that stops catching a planted issue fails the build.
+3. **Promote to dev.** On merge, the same version is deployed to a dev
+   environment and run through a `SnowflakeAdapter` against a Snowflake dev
+   account, so converted DDL is executed, not just parsed.
+4. **Promote to test.** Run against masked copies of real tables, with
+   results reviewed by the data owners for the migration wave.
+5. **Promote to prod.** After an approval gate, the version is scheduled by
+   the bank's orchestrator for the parallel-run tables. The GO / NO-GO report
+   for each run is kept as the audit record for the cutover decision.
+
+Secrets come from the orchestrator's or cloud provider's secret store at each
+stage; nothing is stored in the repo.

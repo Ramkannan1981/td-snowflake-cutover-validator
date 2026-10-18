@@ -23,6 +23,13 @@ Migration engineers and the cutover decision group (data owners, platform lead).
   list comes from configuration.
 - Teradata DDL is available as exported text files.
 
+## Constraints
+- 3-hour build timebox.
+- Must run locally from a clean checkout, with no credentials, paid accounts
+  or Westpac data.
+- Synthetic data only.
+- Built with an AI coding agent as the main implementation tool.
+
 ## Out of scope
 - Converting ETL jobs, stored procedures or dashboards
 - Full Teradata feature coverage

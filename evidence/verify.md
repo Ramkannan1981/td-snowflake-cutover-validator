@@ -89,3 +89,14 @@ Each planted issue is reported in the NO-GO reasons with the exact row:
 - **DDL coverage is narrow.** Only simple `CREATE TABLE` statements with a
   short list of safe types. Real exports will produce many `NEEDS_REVIEW`
   results (for example every `NOT CASESPECIFIC` column).
+
+## Next steps
+
+1. Implement the `SnowflakeAdapter` and run the same checks on a Snowflake
+   dev account.
+2. Replace the in-memory row diff with per-key hashes computed on each side,
+   so it scales to large tables.
+3. Add a CI workflow that runs `scripts/verify.sh` on every pull request.
+4. Add a "likely cause" hint to each failure (for example a case-only
+   difference points to collation), and later an agent with read-only tools
+   to investigate failures, keeping the checks themselves deterministic.
